@@ -4,6 +4,16 @@ Custom Events
 Events are a manifestation of the observer pattern, a well-defined computer science design pattern for 
 loose coupling (allows you to make changes to one module without affecting the others).
 
+Syntax
+------
+
+var o = new CustomEvent()
+
+* o.addEvent(evType, listener)
+* o.removeEvent(evType, listener)
+* o.fireEvent(evType)
+
+
 Usage
 -----
 
