@@ -13,7 +13,6 @@ var o = new CustomEvent()
 * o.removeEvent(evType, listener)
 * o.fireEvent(evType)
 
-
 Usage
 -----
 
