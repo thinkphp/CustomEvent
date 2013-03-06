@@ -1,0 +1,281 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<title>CustomEvent {}</title>
+<style type="text/css">
+
+pre, code {
+  padding: 5px 10px;
+  margin-bottom: 20px;
+  overflow: auto;
+  font-family: courier;
+  background: ghostwhite;
+  border: 1px solid #ddd;
+}
+
+code {
+  padding: 2px 5px;
+}
+
+pre code {
+  padding: 0;
+  margin-bottom: 0;
+  border: 0;
+}
+
+pre:before,
+pre:after {
+  content: '';
+  display: none;
+  width: 100%;
+  position: absolute;
+  left: 0;
+
+}
+
+pre:before {
+  border-top: 1px solid hsla( 0, 0%, 100%, 1 );
+  top: 0;
+}
+
+pre:after {
+  border-top: 1px solid hsla( 0, 0%, 0%, 0.05 );
+  bottom: 0px;
+}
+
+div#input {
+    font-family: "Capriola",sans-serif;
+    font-size: 2em;
+    margin: 1em 0px 0.1em;
+    line-height: 1.2em;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 3em;
+}
+</style>
+</head>
+<body>
+<h1>Custom Events</h1>
+<button id="btn">Run Sorting</button>
+<div id="input"></div>
+<script type="text/javascript">
+
+/**
+ * Custom Events 
+ *
+ * Register a handler for a custom event
+ * Remove a handler for a custom event
+ * Fire a handler for a custom event.
+ */
+
+
+ 
+var CustomEvent = {
+
+    _listeners: {},
+
+    addEvent: function(evType, listener) {
+
+      if(typeof this._listeners[ evType ] === 'undefined') {
+
+              this._listeners[ evType ] = [] 
+      }
+
+      this._listeners[evType].push( listener )
+
+    },
+
+    removeEvent: function( evType, whichListener) {
+
+      if(this._listeners[ evType ] instanceof Array) {
+ 
+           var listeners = this._listeners[ evType ],
+
+               n = listeners.length, 
+
+               i;
+
+           for(i = 0; i < n; i++) {
+
+               if(listeners[ i ] == whichListener) {
+
+                    //The splice() method adds/removes items to/from an array, and returns the removed items and 
+                    //this method changes the original array.
+                    //@param (Integer)  i       - an integer that specifies at what position to add/remove items. 
+                    //                          - note: use negative values to specify the position from the end of the array.
+                    //@param (Interger) howmany - the number of items to be removed. if set to 0, no items will be removed. 
+                    //@param (any)      item2,item3 - the new item(s) to be added to the array.   
+                    listeners.splice(i, 1); 
+
+                    break; 
+               }//endif
+
+           }//endfor  
+
+      }//endif
+
+   },
+
+   fireEvent: function() {
+
+            var event = null;
+
+            if(arguments[0] && typeof arguments[0] === 'string') {
+
+                event = {type: arguments[0], pass: arguments[1]}
+            }
+
+            if(typeof event == null) {
+
+               throw new Error("missing event")
+            }
+     
+            var listeners = this._listeners[ event.type ],
+
+                n = listeners.length,
+
+                i;
+ 
+            for(i = 0; i < n; i++) {
+ 
+                listeners[ i ].call(this, event.pass || null) 
+            }                 
+    }
+
+};
+
+
+var dom  = {
+    $: function( id ) {return document.getElementById( id ) },
+    on: function(elem, event, fn, useCapture) {
+ 
+              if(elem.addEventListener) {
+
+                 return elem.addEventListener(event, fn, useCapture)
+
+              } else if(elem.attachEvent) {
+
+                 return r = elem.attachEvent('on'+event, fn)
+
+              } else {
+
+                 elem['on' + event] = fn 
+              }
+    }
+};
+
+
+var arr = [9,8,7,5,4,3,2,1,0,-1,-2,-3];
+
+dom.on(dom.$('btn'), 'click', function( event ){
+ 
+   CustomEvent.fireEvent("start");    
+
+   doBubble(0, 0, arr.length-1, function(i,j){
+
+         var aux; 
+
+         if(arr[j] > arr[j+1]) {
+            aux = arr[j]
+            arr[j] = arr[j+1]
+            arr[j+1] = aux       
+         }
+
+         draw();
+   })
+
+
+}, false);
+
+function doBubble(i, j, len, callback) {
+
+         callback(i,j);
+ 
+         if(++j>=len) {
+            j = 0
+            i++ 
+         } 
+
+         if(i<len) window.setTimeout(function(){
+                          doBubble(i, j, len, callback)
+
+                   }, 100); else  CustomEvent.fireEvent('sorted')
+} 
+
+function draw() {
+
+         dom.$("input").innerHTML = arr.join(", ")
+}
+
+    draw()
+
+
+    CustomEvent.addEvent("start", function(){
+       console.log('start sorting!!!');
+    })
+    CustomEvent.addEvent("sorted", function(){
+       console.log('end sorting!!!');
+       alert('sorted!!!');
+    })
+</script>
+
+<pre><code>
+var arr = [9,8,7,5,4,3,2,1,0,-1,-2,-3];
+
+dom.on( dom.$('btn'), 'click', function( event ){
+ 
+   CustomEvent.fireEvent("start");    
+
+   doBubble(0, 0, arr.length-1, function(i,j){
+
+         var aux; 
+
+         if(arr[j] > arr[j+1]) {
+            aux = arr[j]
+            arr[j] = arr[j+1]
+            arr[j+1] = aux       
+         }
+
+         draw();
+   })
+
+
+}, false);
+
+function doBubble(i, j, len, callback) {
+
+         callback(i,j);
+ 
+         if(++j >= len) {
+            j = 0
+            i++ 
+         } 
+
+         if(i < len) window.setTimeout(function(){
+                          doBubble(i, j, len, callback)
+
+                   }, 100); else  CustomEvent.fireEvent('sorted')
+} 
+
+function draw() {
+
+         dom.$("input").innerHTML = arr.join(", ")
+}
+
+    draw()
+
+
+    CustomEvent.addEvent("start", function(){
+       console.log('start sorting!!!');
+    })
+    CustomEvent.addEvent("sorted", function(){
+       console.log('end sorting!!!');
+       alert('sorted!!!');
+    })
+
+</code></pre>
+</body>
+</html>
+
+
